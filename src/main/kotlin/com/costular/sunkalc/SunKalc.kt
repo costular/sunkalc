@@ -22,11 +22,11 @@ class SunKalc(
         val d = MathUtils.toDays(date)
 
         val c = MathUtils.getSunCoords(d)
-        val H = MathUtils.siderealTime(d, lw) - c.second;
+        val H = MathUtils.siderealTime(d, lw) - c.ra;
 
         return SunPosition(
-            MathUtils.azimuth(H, phi, c.first),
-            MathUtils.altitude(H, phi, c.first)
+            MathUtils.azimuth(H, phi, c.dec),
+            MathUtils.altitude(H, phi, c.dec)
         )
     }
 
@@ -48,8 +48,8 @@ class SunKalc(
         h += astroRefraction(h); // altitude correction for refraction
 
         return MoonPosition(
-            azimuth(H, phi, c.dec),
             h,
+            azimuth(H, phi, c.dec),
             c.dist,
             pa
         )
@@ -66,16 +66,16 @@ class SunKalc(
 
         val sdist = 149598000 // distance from Earth to Sun in km
 
-        val phi = acos(sin(s.first) * sin(m.dec) + cos(s.first) * cos(m.dec) * cos(s.second - m.ra))
+        val phi = acos(sin(s.dec) * sin(m.dec) + cos(s.dec) * cos(m.dec) * cos(s.ra - m.ra))
         val inc = atan2(sdist * sin(phi), m.dist - sdist * cos(phi))
         val angle = atan2(
-            cos(s.first) * sin(s.second - m.ra), sin(s.first) * cos(m.dec) -
-                    cos(s.first) * sin(m.dec) * cos(s.second - m.ra)
+            cos(s.dec) * sin(s.ra - m.ra), sin(s.dec) * cos(m.dec) -
+                    cos(s.dec) * sin(m.dec) * cos(s.ra - m.ra)
         );
 
         return MoonIllumination(
-            (1 + cos(inc) / 2).toFloat(),
-            (0.5 + 0.5 * inc * (if (angle < 0) -1 else 1) / Math.PI).toFloat(),
+            ((1 + cos(inc)) / 2),
+            (0.5 + 0.5 * inc * (if (angle < 0) -1 else 1) / Math.PI),
             angle
         )
     }

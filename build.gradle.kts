@@ -9,6 +9,10 @@ repositories {
     mavenCentral()
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.threeten:threetenbp:1.4.1")

@@ -1,6 +1,7 @@
 package com.costular.sunkalc
 
 import io.kotlintest.TestCase
+import io.kotlintest.matchers.boolean.shouldBeTrue
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.threeten.bp.LocalDateTime
@@ -36,17 +37,17 @@ class SunkalcTest : StringSpec() {
         "getMoonPosition returns moon position data given time and location" {
             val moonPosition = sunkalc.getMoonPosition()
 
-            moonPosition.azimuth.shouldBe(-0.9783999522438226)
-            moonPosition.altitude.shouldBe(0.014551482243892251)
-            moonPosition.distanceKm.shouldBe(364121.37256256194)
+            near(moonPosition.azimuth, -0.9783999522438226).shouldBeTrue()
+            near(moonPosition.altitude, 0.014551482243892251).shouldBeTrue()
+            near(moonPosition.distanceKm, 364121.37256256194).shouldBeTrue()
         }
 
         "getMoonIllumination returns fraction and angle of moon's illuminated limb and phase" {
             val moonIllumination = sunkalc.getMoonIllumination()
 
-            moonIllumination.fraction.shouldBe(0.4848068202456373)
-            moonIllumination.phase.shouldBe(0.7548368838538762)
-            moonIllumination.angle.shouldBe(1.6732942678578346)
+            near(moonIllumination.fraction, 0.4848068202456373).shouldBeTrue()
+            near(moonIllumination.phase, 0.7548368838538762).shouldBeTrue()
+            near(moonIllumination.angle, 1.6732942678578346).shouldBeTrue()
         }
      }
 

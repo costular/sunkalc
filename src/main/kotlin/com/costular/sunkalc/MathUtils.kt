@@ -63,11 +63,11 @@ internal object MathUtils {
         return M + C + P + PI
     }
 
-    fun getSunCoords(d: Double): Pair<Double, Double> {
+    fun getSunCoords(d: Double): SunCoords {
         val M = solarMeanAnomaly(d)
         val L = eclipticLongitude(M)
 
-        return Pair(declination(L, 0.0), rightAscension(L, 0.0))
+        return SunCoords(declination(L, 0.0), rightAscension(L, 0.0))
     }
 
     fun getMoonCords(d: Double): MoonCords {
