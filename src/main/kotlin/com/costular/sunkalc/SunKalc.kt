@@ -3,7 +3,7 @@ package com.costular.sunkalc
 import com.costular.sunkalc.Constants.rad
 import com.costular.sunkalc.MathUtils.astroRefraction
 import com.costular.sunkalc.MathUtils.azimuth
-import java.time.LocalDateTime
+import org.threeten.bp.LocalDateTime
 import kotlin.math.*
 
 class SunKalc(
@@ -122,11 +122,11 @@ class SunKalc(
                 if (x1 < -1) x1 = x2
             }
 
-            if (roots === 1) {
+            if (roots == 1) {
                 if (h0 < 0) rise = i + x1
                 else set = i + x1
 
-            } else if (roots === 2) {
+            } else if (roots == 2) {
                 rise = i + (if (ye < 0) x2 else x1)
                 set = i + (if (ye < 0) x1 else x2)
             }

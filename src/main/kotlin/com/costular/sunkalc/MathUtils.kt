@@ -5,16 +5,16 @@ import com.costular.sunkalc.Constants.J2000
 import com.costular.sunkalc.Constants.dayMs
 import com.costular.sunkalc.Constants.e
 import com.costular.sunkalc.Constants.rad
-import java.sql.Timestamp
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
+import org.threeten.bp.Instant
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneId
+import org.threeten.bp.ZoneOffset
 import kotlin.math.*
 
 internal object MathUtils {
 
     fun toJulian(date: LocalDateTime): Double =
-        Timestamp.valueOf(date).time / dayMs - 0.5 + J1970
+        date.toInstant(ZoneOffset.UTC).toEpochMilli() / dayMs - 0.5 + J1970
 
     fun fromJulian(julian: Double): LocalDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(((julian + 0.5 - J1970) * dayMs).toLong()), ZoneId.systemDefault())

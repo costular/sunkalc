@@ -1,6 +1,7 @@
 package com.costular.sunkalc
 
-import java.time.LocalDateTime
+import org.threeten.bp.LocalDateTime
+
 
 /**
  * Represents the moon time
