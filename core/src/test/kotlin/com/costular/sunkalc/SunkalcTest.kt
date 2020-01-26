@@ -43,11 +43,18 @@ class SunkalcTest : StringSpec() {
         }
 
         "getMoonIllumination returns fraction and angle of moon's illuminated limb and phase" {
-            val moonIllumination = sunkalc.getMoonIllumination()
+            val moonIllumination = sunkalc.getMoonPhase()
 
             near(moonIllumination.fraction, 0.4848068202456373).shouldBeTrue()
             near(moonIllumination.phase, 0.7548368838538762).shouldBeTrue()
             near(moonIllumination.angle, 1.6732942678578346).shouldBeTrue()
+        }
+
+        "getMoonTimes returns moon rise and set times" {
+            val moonTimes = sunkalc.getMoonTimes()
+
+            moonTimes.rise.shouldBe(LocalDateTime.of(2013, 3, 4, 23, 54, 29))
+            moonTimes.set.shouldBe(LocalDateTime.of(2013, 3, 4, 7, 47, 58))
         }
      }
 

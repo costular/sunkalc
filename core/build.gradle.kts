@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm")
 }
 
 group = "org.example"
@@ -9,8 +9,11 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.threeten:threetenbp:1.4.1")
+
+    testImplementation("io.kotlintest:kotlintest-runner-junit5:3.3.2")
 }
 
 tasks {

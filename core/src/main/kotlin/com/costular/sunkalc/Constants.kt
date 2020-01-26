@@ -10,5 +10,6 @@ object Constants {
     const val J2000 = 2451545
 
     const val e = rad * 23.4397
+    const val J0 = 0.0009
 
 }

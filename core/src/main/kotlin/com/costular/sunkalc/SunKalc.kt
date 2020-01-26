@@ -6,7 +6,7 @@ import com.costular.sunkalc.MathUtils.azimuth
 import org.threeten.bp.LocalDateTime
 import kotlin.math.*
 
-class SunKalc(
+class SunKalc @JvmOverloads constructor(
     private val latitude: Double,
     private val longitude: Double,
     private val date: LocalDateTime = LocalDateTime.now()
@@ -14,7 +14,7 @@ class SunKalc(
 
     /**
      * Returns the sun position
-     * @return {@link com.costular.sunkalc.SunPosition} which represents the Sun position
+     * @return {@link SunPosition} which represents the Sun position
      */
     fun getSunPosition(): SunPosition {
         val lw = rad * -longitude
@@ -22,7 +22,7 @@ class SunKalc(
         val d = MathUtils.toDays(date)
 
         val c = MathUtils.getSunCoords(d)
-        val H = MathUtils.siderealTime(d, lw) - c.ra;
+        val H = MathUtils.siderealTime(d, lw) - c.ra
 
         return SunPosition(
             MathUtils.azimuth(H, phi, c.dec),
@@ -31,8 +31,39 @@ class SunKalc(
     }
 
     /**
+     * Returns the sun & moon times
+     * @return {@link SunTimes} which represents the sun & moon times
+     */
+    fun getTimes(date: LocalDateTime = this.date, height: Double = 0.0): SunTimes {
+        val solarNoonAndNadir = MathUtils.getSolarNoonAndNadir(latitude, longitude, date, height)
+        val sunriseAndSunset = MathUtils.getTimeAndEndingByValue(latitude, longitude, date, height, -0.833f)
+        val sunriseEndAndSunsetStart = MathUtils.getTimeAndEndingByValue(latitude, longitude, date, height, -0.3f)
+        val dawnAndDusk = MathUtils.getTimeAndEndingByValue(latitude, longitude, date, height, -6f)
+        val nauticalDawnAndNauticalDusk = MathUtils.getTimeAndEndingByValue(latitude, longitude, date, height, -12f)
+        val nightEndAndNight = MathUtils.getTimeAndEndingByValue(latitude, longitude, date, height, -18f)
+        val goldenHourEndAndGoldenHour = MathUtils.getTimeAndEndingByValue(latitude, longitude, date, height, 6f)
+
+        return SunTimes(
+            sunriseAndSunset.first,
+            sunriseEndAndSunsetStart.first,
+            goldenHourEndAndGoldenHour.second,
+            goldenHourEndAndGoldenHour.first,
+            solarNoonAndNadir.first,
+            sunriseEndAndSunsetStart.second,
+            sunriseAndSunset.second,
+            dawnAndDusk.second,
+            nauticalDawnAndNauticalDusk.second,
+            nightEndAndNight.second,
+            nightEndAndNight.first,
+            solarNoonAndNadir.second,
+            nauticalDawnAndNauticalDusk.first,
+            dawnAndDusk.first
+        )
+    }
+
+    /**
      * Returns the moon position
-     * @return {@link com.costular.sunkalc.MoonPosition} which represents the moon position
+     * @return {@link MoonPosition} which represents the moon position
      */
     fun getMoonPosition(date: LocalDateTime = this.date): MoonPosition {
         val lw = rad * -longitude
@@ -43,9 +74,9 @@ class SunKalc(
         val H = MathUtils.siderealTime(d, lw) - c.ra
         var h = MathUtils.altitude(H, phi, c.dec)
         // formula 14.1 of "Astronomical Algorithms" 2nd edition by Jean Meeus (Willmann-Bell, Richmond) 1998.
-        val pa = atan2(sin(H), tan(phi) * cos(c.dec) - sin(c.dec) * cos(H));
+        val pa = atan2(sin(H), tan(phi) * cos(c.dec) - sin(c.dec) * cos(H))
 
-        h += astroRefraction(h); // altitude correction for refraction
+        h += astroRefraction(h) // altitude correction for refraction
 
         return MoonPosition(
             h,
@@ -56,10 +87,10 @@ class SunKalc(
     }
 
     /**
-     * Gets the moon illumination
+     * Gets the moon's phase information
      * @return {@link com.costular.sunkalc.MoonIllumination} which represents the moon illumination
      */
-    fun getMoonIllumination(): MoonIllumination {
+    fun getMoonPhase(): MoonPhaseInfo {
         val d = MathUtils.toDays(date)
         val s = MathUtils.getSunCoords(d)
         val m = MathUtils.getMoonCords(d)
@@ -71,18 +102,48 @@ class SunKalc(
         val angle = atan2(
             cos(s.dec) * sin(s.ra - m.ra), sin(s.dec) * cos(m.dec) -
                     cos(s.dec) * sin(m.dec) * cos(s.ra - m.ra)
-        );
-
-        return MoonIllumination(
-            ((1 + cos(inc)) / 2),
-            (0.5 + 0.5 * inc * (if (angle < 0) -1 else 1) / Math.PI),
-            angle
         )
+
+        val phaseValue = (0.5 + 0.5 * inc * (if (angle < 0) -1 else 1) / Math.PI)
+
+        return MoonPhaseInfo(
+            ((1 + cos(inc)) / 2),
+            phaseValue,
+            angle,
+            getPhaseNameByPhaseValue(phaseValue),
+            getPhaseEmojiByPhaseValue(phaseValue)
+        )
+    }
+
+    private fun getPhaseNameByPhaseValue(value: Double): MoonPhase {
+        return when {
+            value == 0.0 -> MoonPhase.NEW_MOON
+            value > 0 && value < 0.25 -> MoonPhase.WAXING_CRESCENT
+            value == 0.25 -> MoonPhase.FIRST_QUARTER
+            value > 0.25 && value < 0.5 -> MoonPhase.WAXING_GIBBOUS
+            value == 0.5 -> MoonPhase.FULL_MOON
+            value > 0.5 && value < 0.75 -> MoonPhase.WANING_GIBBOUS
+            value == 0.75 -> MoonPhase.LAST_QUARTER
+            else -> MoonPhase.WANING_CRESCENT
+        }
+    }
+
+    private fun getPhaseEmojiByPhaseValue(value: Double): String {
+        return when {
+            value == 0.0 -> "\uD83C\uDF11"
+            value > 0 && value < 0.25 -> "\uD83C\uDF12"
+            value == 0.25 -> "\uD83C\uDF13"
+            value > 0.25 && value < 0.5 -> "\uD83C\uDF14"
+            value == 0.5 -> "\uD83C\uDF15"
+            value > 0.5 && value < 0.75 -> "\uD83C\uDF16"
+            value == 0.75 -> "\uD83C\uDF17"
+            else -> "\uD83C\uDF18"
+        }
     }
 
     /**
      * Returns the moon times
-     * @return {@link com.costular.sunkalc.MoonTime} which represents the times
+     * @return {@link MoonTime} which represents the times
      */
     fun getMoonTimes(): MoonTime {
         var hc = 0.133 * rad
@@ -103,8 +164,8 @@ class SunKalc(
 
         // go in 2-hour chunks, each time seeing if a 3-point quadratic curve crosses zero (which means rise or set)
         for (i in 0..24 step 2) {
-            h1 = getMoonPosition(MathUtils.hoursLater(date, i)).altitude - hc;
-            h2 = getMoonPosition(MathUtils.hoursLater(date, i + 1)).altitude - hc;
+            h1 = getMoonPosition(MathUtils.hoursLater(date, i)).altitude - hc
+            h2 = getMoonPosition(MathUtils.hoursLater(date, i + 1)).altitude - hc
 
             a = (h0 + h2) / 2 - h1
             b = (h2 - h0) / 2
@@ -131,7 +192,7 @@ class SunKalc(
                 set = i + (if (ye < 0) x1 else x2)
             }
 
-            if (rise != 0.0 && set != 0.0) break;
+            if (rise != 0.0 && set != 0.0) break
 
             h0 = h2
         }

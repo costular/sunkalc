@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm")
 }
 
 group = "org.example"
@@ -9,8 +9,8 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+dependencies {
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks {

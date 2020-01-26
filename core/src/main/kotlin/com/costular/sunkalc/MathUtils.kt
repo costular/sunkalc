@@ -11,6 +11,7 @@ import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
 import kotlin.math.*
 
+
 internal object MathUtils {
 
     fun toJulian(date: LocalDateTime): Double =
@@ -52,6 +53,33 @@ internal object MathUtils {
 
 // general sun calculations
 
+    fun julianCycle(d: Double, lw: Double): Double {
+        return round(d - Constants.J0 - lw / (2 * PI))
+    }
+
+    fun approxTransit(Ht: Double, lw: Double, n: Double): Double {
+        return Constants.J0 + (Ht + lw) / (2 * PI) + n
+    }
+
+    fun solarTransitJ(ds: Double, M: Double, L: Double): Double {
+        return J2000 + ds + 0.0053 * sin(M) - 0.0069 * sin(2 * L)
+    }
+
+    fun hourAngle(h: Double, phi: Double, d: Double): Double {
+        return cos((sin(h) - sin(phi) * sin(d)) / (cos(phi) * cos(d)))
+    }
+
+    fun observerAngle(height: Double): Double {
+        return -2.076 * sqrt(height) / 60
+    }
+
+    // returns set time for the given sun altitude
+    fun getSetJ(h: Double, lw: Double, phi: Double, dec: Double, n: Double, M: Double, L: Double): Double {
+        val w = hourAngle(h, phi, dec)
+        val a = approxTransit(w, lw, n)
+        return solarTransitJ(a, M, L)
+    }
+
     fun solarMeanAnomaly(d: Double): Double {
         return rad * (357.5291 + 0.98560028 * d)
     }
@@ -84,6 +112,57 @@ internal object MathUtils {
             declination(l, b),
             dt
         )
+    }
+
+    fun getSolarNoonAndNadir(
+        latitude: Double,
+        longitude: Double,
+        date: LocalDateTime,
+        height: Double
+    ): Pair<LocalDateTime, LocalDateTime> {
+        val lw = rad * -longitude
+
+        val d = toDays(date)
+        val n = julianCycle(d, lw)
+        val ds = approxTransit(0.0, lw, n)
+
+        val M = solarMeanAnomaly(ds)
+        val L = eclipticLongitude(M)
+
+        val Jnoon = solarTransitJ(ds, M, L)
+
+        val solarNoon = fromJulian(Jnoon)
+        val nadir = fromJulian(Jnoon - 0.5)
+
+        return Pair(solarNoon, nadir)
+    }
+
+    fun getTimeAndEndingByValue(
+        latitude: Double,
+        longitude: Double,
+        date: LocalDateTime,
+        height: Double,
+        angle: Float
+    ): Pair<LocalDateTime, LocalDateTime> {
+        val lw = rad * -longitude
+        val phi = rad * latitude
+
+        val dh = observerAngle(height)
+
+        val d = toDays(date)
+        val n = julianCycle(d, lw)
+        val ds = approxTransit(0.0, lw, n)
+
+        val M = solarMeanAnomaly(ds)
+        val L = eclipticLongitude(M)
+        val dec = declination(L, 0.0)
+
+        val Jnoon = solarTransitJ(ds, M, L)
+
+        val Jset = getSetJ(((angle + dh) * rad), lw, phi, dec, n, M, L)
+        val Jrise = Jnoon - (Jset - Jnoon)
+
+        return Pair(fromJulian(Jset), fromJulian(Jrise))
     }
 
     fun hoursLater(date: LocalDateTime, hoursLater: Int): LocalDateTime =
