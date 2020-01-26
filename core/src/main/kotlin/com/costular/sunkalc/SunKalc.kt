@@ -4,6 +4,8 @@ import com.costular.sunkalc.Constants.rad
 import com.costular.sunkalc.MathUtils.astroRefraction
 import com.costular.sunkalc.MathUtils.azimuth
 import org.threeten.bp.LocalDateTime
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import kotlin.math.*
 
 class SunKalc @JvmOverloads constructor(
@@ -11,6 +13,8 @@ class SunKalc @JvmOverloads constructor(
     private val longitude: Double,
     private val date: LocalDateTime = LocalDateTime.now()
 ) {
+
+    private val percentages = arrayOf(0f, .25f, .5f, .75f, 1f)
 
     /**
      * Returns the sun position
@@ -90,7 +94,27 @@ class SunKalc @JvmOverloads constructor(
      * Gets the moon's phase information
      * @return {@link com.costular.sunkalc.MoonIllumination} which represents the moon illumination
      */
-    fun getMoonPhase(): MoonPhaseInfo {
+    fun getMoonPhase(date: LocalDateTime = this.date): MoonPhaseInfo {
+        val moonCalculations = getMoonCalculations(date)
+        val moonCalculationsNextDay = getMoonCalculations(date.plusDays(1))
+
+        val moonPhasePosition = getMoonPhasePosition(moonCalculations, moonCalculationsNextDay)
+        val phaseName = getPhaseNameByPhasePosition(moonPhasePosition)
+        val phaseEmoji = getPhaseEmojiByPhasePosition(moonPhasePosition)
+
+        val fraction = ((1 + cos(moonCalculations.inc)) / 2)
+        val phaseValue = (0.5 + 0.5 * moonCalculations.inc * (if (moonCalculations.angle < 0) -1 else 1) / Math.PI)
+
+        return MoonPhaseInfo(
+            fraction,
+            phaseValue,
+            moonCalculations.angle,
+            phaseName,
+            phaseEmoji
+        )
+    }
+
+    private fun getMoonCalculations(date: LocalDateTime): MoonCalculations {
         val d = MathUtils.toDays(date)
         val s = MathUtils.getSunCoords(d)
         val m = MathUtils.getMoonCords(d)
@@ -104,40 +128,56 @@ class SunKalc @JvmOverloads constructor(
                     cos(s.dec) * sin(m.dec) * cos(s.ra - m.ra)
         )
 
-        val phaseValue = (0.5 + 0.5 * inc * (if (angle < 0) -1 else 1) / Math.PI)
-
-        return MoonPhaseInfo(
-            ((1 + cos(inc)) / 2),
-            phaseValue,
-            angle,
-            getPhaseNameByPhaseValue(phaseValue),
-            getPhaseEmojiByPhaseValue(phaseValue)
-        )
+        return MoonCalculations(phi, inc, angle)
     }
 
-    private fun getPhaseNameByPhaseValue(value: Double): MoonPhase {
-        return when {
-            value == 0.0 -> MoonPhase.NEW_MOON
-            value > 0 && value < 0.25 -> MoonPhase.WAXING_CRESCENT
-            value == 0.25 -> MoonPhase.FIRST_QUARTER
-            value > 0.25 && value < 0.5 -> MoonPhase.WAXING_GIBBOUS
-            value == 0.5 -> MoonPhase.FULL_MOON
-            value > 0.5 && value < 0.75 -> MoonPhase.WANING_GIBBOUS
-            value == 0.75 -> MoonPhase.LAST_QUARTER
-            else -> MoonPhase.WANING_CRESCENT
+    private fun getMoonPhasePosition(current: MoonCalculations, next: MoonCalculations): Int {
+        var index = 0
+
+        val phase1 = (0.5 + 0.5 * current.inc * (if (current.angle < 0) -1 else 1) / Math.PI)
+        val phase2 = (0.5 + 0.5 * next.inc * (if (next.angle < 0) -1 else 1) / Math.PI)
+
+        if (phase1 <= phase2) {
+            for (i in percentages.indices) {
+                val percentage = percentages[i]
+                if (percentage >= phase1 && percentage <= phase2) {
+                    index = 2 * i
+                    break
+                } else if (percentage > phase1) {
+                    index = (2 * i) - 1
+                    break
+                }
+            }
+        }
+
+        return index % 8
+    }
+
+    private fun getPhaseNameByPhasePosition(value: Int): MoonPhase {
+        return when(value) {
+            0 -> MoonPhase.NEW_MOON
+            1 -> MoonPhase.WAXING_CRESCENT
+            2 -> MoonPhase.FIRST_QUARTER
+            3 -> MoonPhase.WAXING_GIBBOUS
+            4 -> MoonPhase.FULL_MOON
+            5 -> MoonPhase.WANING_GIBBOUS
+            6 -> MoonPhase.LAST_QUARTER
+            7 -> MoonPhase.WANING_CRESCENT
+            else -> throw IllegalStateException("Moon phase position should be between 0-7")
         }
     }
 
-    private fun getPhaseEmojiByPhaseValue(value: Double): String {
-        return when {
-            value == 0.0 -> "\uD83C\uDF11"
-            value > 0 && value < 0.25 -> "\uD83C\uDF12"
-            value == 0.25 -> "\uD83C\uDF13"
-            value > 0.25 && value < 0.5 -> "\uD83C\uDF14"
-            value == 0.5 -> "\uD83C\uDF15"
-            value > 0.5 && value < 0.75 -> "\uD83C\uDF16"
-            value == 0.75 -> "\uD83C\uDF17"
-            else -> "\uD83C\uDF18"
+    private fun getPhaseEmojiByPhasePosition(value: Int): String {
+        return when(value) {
+            0 -> "\uD83C\uDF11"
+            1 -> "\uD83C\uDF12"
+            2 -> "\uD83C\uDF13"
+            3 -> "\uD83C\uDF14"
+            4 -> "\uD83C\uDF15"
+            5 -> "\uD83C\uDF16"
+            6 -> "\uD83C\uDF17"
+            7 -> "\uD83C\uDF18"
+            else -> throw IllegalStateException("Moon phase position should be between 0-7")
         }
     }
 

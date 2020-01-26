@@ -9,8 +9,12 @@ repositories {
     mavenCentral()
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(project(":core"))
 }
 
 tasks {

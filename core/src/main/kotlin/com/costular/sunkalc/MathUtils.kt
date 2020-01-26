@@ -168,4 +168,32 @@ internal object MathUtils {
     fun hoursLater(date: LocalDateTime, hoursLater: Int): LocalDateTime =
         date.plusHours(hoursLater.toLong())
 
+    fun closestValue(value: Float, values: FloatArray): Float {
+        var min = Integer.MAX_VALUE.toFloat()
+        var closest = value
+
+        values.forEach {
+            val diff = Math.abs(it - value)
+
+            if (diff < min) {
+                min = diff
+                closest = it
+            }
+        }
+
+        return closest
+    }
+
+}
+
+internal fun Double.round(decimals: Int): Double {
+    var multiplier = 1.0
+    repeat(decimals) { multiplier *= 10 }
+    return round(this * multiplier) / multiplier
+}
+
+internal fun Double.roundToFloat(decimals: Int): Float {
+    var multiplier = 1.0
+    repeat(decimals) { multiplier *= 10 }
+    return (round(this * multiplier) / multiplier).toFloat()
 }

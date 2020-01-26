@@ -9,10 +9,6 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
