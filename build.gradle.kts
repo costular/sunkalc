@@ -2,11 +2,17 @@ plugins {
     kotlin("jvm") version "1.3.61"
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("com.novoda:bintray-release:0.9.2")
+    }
 }
 
 tasks {

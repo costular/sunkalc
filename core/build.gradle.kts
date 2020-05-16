@@ -1,9 +1,12 @@
+import com.novoda.gradle.release.PublishExtension
+
 plugins {
     kotlin("jvm")
+    id("com.novoda.bintray-release")
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "com.costular"
+version = "0.2"
 
 repositories {
     mavenCentral()
@@ -30,4 +33,16 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+}
+
+configure<PublishExtension> {
+    userOrg = "costular"
+    groupId = "com.costular"
+    artifactId = "sunkalc"
+    publishVersion = version.toString()
+    desc = "A tiny Kotlin library for calculating sun/moon positions and phases based on mourner/suncalc"
+    website = "https://github.com/costular/sunkalc"
+    bintrayUser = System.getenv("BINTRAY_USER")
+    bintrayKey = System.getenv("BINTRAY_KEY")
+    dryRun = false
 }
