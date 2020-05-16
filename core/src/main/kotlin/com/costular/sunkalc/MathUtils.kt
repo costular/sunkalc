@@ -5,6 +5,7 @@ import com.costular.sunkalc.Constants.J2000
 import com.costular.sunkalc.Constants.dayMs
 import com.costular.sunkalc.Constants.e
 import com.costular.sunkalc.Constants.rad
+import com.costular.sunkalc.Constants.zeroFive
 import org.threeten.bp.Instant
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZoneId
@@ -15,13 +16,13 @@ import kotlin.math.*
 internal object MathUtils {
 
     fun toJulian(date: LocalDateTime): Double =
-        date.toInstant(ZoneOffset.UTC).toEpochMilli() / dayMs - 0.5 + J1970
+            date.toInstant(ZoneOffset.UTC).toEpochMilli() / dayMs - zeroFive + J1970
 
     fun fromJulian(julian: Double): LocalDateTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(((julian + 0.5 - J1970) * dayMs).toLong()), ZoneId.systemDefault())
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(((julian + 0.50 - J1970) * dayMs).toLong()), ZoneId.systemDefault())
 
     fun toDays(date: LocalDateTime): Double =
-        toJulian(date) - J2000
+            toJulian(date) - J2000
 
     fun rightAscension(l: Double, b: Double): Double {
         return atan2(sin(l) * cos(e) - tan(b) * sin(e), cos(l))
@@ -98,6 +99,14 @@ internal object MathUtils {
         return SunCoords(declination(L, 0.0), rightAscension(L, 0.0))
     }
 
+    fun normalize(value: Double): Double {
+        var v = value - floor(value)
+        if (v < 0) {
+            v += 1
+        }
+        return v
+    }
+
     fun getMoonCords(d: Double): MoonCords {
         val L = rad * (218.316 + 13.176396 * d) // ecliptic longitude
         val M = rad * (134.963 + 13.064993 * d) // mean anomaly
@@ -108,17 +117,17 @@ internal object MathUtils {
         val dt = 385001 - 20905 * cos(M)  // distance to the moon in km
 
         return MoonCords(
-            rightAscension(l, b),
-            declination(l, b),
-            dt
+                rightAscension(l, b),
+                declination(l, b),
+                dt
         )
     }
 
     fun getSolarNoonAndNadir(
-        latitude: Double,
-        longitude: Double,
-        date: LocalDateTime,
-        height: Double
+            latitude: Double,
+            longitude: Double,
+            date: LocalDateTime,
+            height: Double
     ): Pair<LocalDateTime, LocalDateTime> {
         val lw = rad * -longitude
 
@@ -138,11 +147,11 @@ internal object MathUtils {
     }
 
     fun getTimeAndEndingByValue(
-        latitude: Double,
-        longitude: Double,
-        date: LocalDateTime,
-        height: Double,
-        angle: Float
+            latitude: Double,
+            longitude: Double,
+            date: LocalDateTime,
+            height: Double,
+            angle: Float
     ): Pair<LocalDateTime, LocalDateTime> {
         val lw = rad * -longitude
         val phi = rad * latitude
@@ -166,7 +175,7 @@ internal object MathUtils {
     }
 
     fun hoursLater(date: LocalDateTime, hoursLater: Int): LocalDateTime =
-        date.plusHours(hoursLater.toLong())
+            date.plusMinutes((hoursLater * 60).toLong())
 
     fun closestValue(value: Float, values: FloatArray): Float {
         var min = Integer.MAX_VALUE.toFloat()
