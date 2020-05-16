@@ -1,13 +1,11 @@
 package com.costular.sunkalc
 
-import com.costular.sunkalc.Constants.rad
+import com.costular.sunkalc.SunkalcConstants.rad
 import com.costular.sunkalc.MathUtils.astroRefraction
 import com.costular.sunkalc.MathUtils.azimuth
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZoneId
-import java.math.RoundingMode
-import java.text.DecimalFormat
 import kotlin.math.*
 
 class SunKalc @JvmOverloads constructor(

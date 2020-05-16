@@ -3,7 +3,7 @@ package com.costular.sunkalc
 import kotlin.math.PI
 
 
-object Constants {
+object SunkalcConstants {
     const val dayMs: Double = 86400000.0
     const val rad = PI / 180
     const val J1970 = 2440588

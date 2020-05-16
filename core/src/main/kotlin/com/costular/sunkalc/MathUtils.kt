@@ -1,11 +1,11 @@
 package com.costular.sunkalc
 
-import com.costular.sunkalc.Constants.J1970
-import com.costular.sunkalc.Constants.J2000
-import com.costular.sunkalc.Constants.dayMs
-import com.costular.sunkalc.Constants.e
-import com.costular.sunkalc.Constants.rad
-import com.costular.sunkalc.Constants.zeroFive
+import com.costular.sunkalc.SunkalcConstants.J1970
+import com.costular.sunkalc.SunkalcConstants.J2000
+import com.costular.sunkalc.SunkalcConstants.dayMs
+import com.costular.sunkalc.SunkalcConstants.e
+import com.costular.sunkalc.SunkalcConstants.rad
+import com.costular.sunkalc.SunkalcConstants.zeroFive
 import org.threeten.bp.Instant
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZoneId
@@ -55,11 +55,11 @@ internal object MathUtils {
 // general sun calculations
 
     fun julianCycle(d: Double, lw: Double): Double {
-        return round(d - Constants.J0 - lw / (2 * PI))
+        return round(d - SunkalcConstants.J0 - lw / (2 * PI))
     }
 
     fun approxTransit(Ht: Double, lw: Double, n: Double): Double {
-        return Constants.J0 + (Ht + lw) / (2 * PI) + n
+        return SunkalcConstants.J0 + (Ht + lw) / (2 * PI) + n
     }
 
     fun solarTransitJ(ds: Double, M: Double, L: Double): Double {
